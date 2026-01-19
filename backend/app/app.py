@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi_mcp import FastApiMCP
 from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from db.database import engine
+from backend.app.db.schemas import AppointmentCreate, AppointmentOut
 import datetime
 
 app = FastAPI(title="Simple FastAPI + MCP Demo")
@@ -13,23 +16,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class AskRequest(BaseModel):
-    query: str
-
-class AppointmentRequest(BaseModel):
-    doctor_name: str
-    appointment_date: datetime.date
-
-class Doctor_Availablity(BaseModel):
-    doctor_name: str
-    date: datetime.date
+@app.on_event("startup"):
+def on_startup():
+    from db.database import Base
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 @app.post("/book_appointment", operation_id="book_appointment")
-def get_data(request: AppointmentRequest):
+def get_data(request: AppointmentCreate):
     """
     Use this tool to book an appointment with a doctor.
     """
@@ -43,7 +40,7 @@ def get_data(request: AppointmentRequest):
 
 
 @app.post("/doctor_availablity", operation_id="doctor_availablity")
-async def get_name(request: Doctor_Availablity):
+async def get_name(request: AppointmentOut):
     """
     Use this tool to check the availablity of doctor
     """
@@ -53,6 +50,9 @@ async def get_name(request: Doctor_Availablity):
         return {"message": f"Success: {doctor} is ready on {date_time}", "status": "success"}
     return {"message": "Doctor not available", "status": "failed"}
 
+@app.get("/appointments", response_model=list[AppointmentOut])
+async def list_appointments():
+    return db
 
 
 mcp = FastApiMCP(app, include_operations=["doctor_availablity", "book_appointment"])

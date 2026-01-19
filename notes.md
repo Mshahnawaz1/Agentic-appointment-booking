@@ -37,3 +37,16 @@ This is the issue:
 `INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 Booking appointment with payload: {'doctor_name': 'Dr. Smith', 'date': 'this week\'s date + 7 days + 1 days + "2024-01-15" or "the next  Monday'}
 INFO:httpx:HTTP Request: POST http://localhost:8000/doctor_availablity "HTTP/1.1 422 Unprocessable Content"`
+
+
+### DATABASE
+- Using postgresql with docker, 
+    `docker-compose up -d`
+
+Enter the container's PostgreSQL shell
+- `docker exec -it school_db psql -U postgres -d school_db`
+```
+docker-compose down          # Stops container, keeps data
+docker-compose down -v       # stop and remove data
+```
+3. When creating the model for database, *enum* is used to create a new type of column as String, Date etc. It should be named otherwise db will randomly generate the name.
