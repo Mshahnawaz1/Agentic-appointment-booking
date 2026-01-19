@@ -1,18 +1,22 @@
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, START, END
-from typing import Annotated, TypedDict, Optional
 from langchain_core.documents import Document
 from langchain_core.messages import SystemMessage, HumanMessage, AnyMessage
 from langgraph.graph.message import add_messages
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-# from langchain_community.vectorstores import FAISS
+from langgraph.prebuilt import ToolNode
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pydantic import BaseModel, Field
+from typing import Annotated, TypedDict, Optional, Literal
 import json
-import requests
-import base64
 import logging
 import os
 from dotenv import load_dotenv
+import datetime
+
+from pydantic import Field
+
+from client import tools, book_appointment, check_availability
 
 #loading 
 load_dotenv()
@@ -23,19 +27,28 @@ model = ChatGroq(
     model="llama-3.1-8b-instant",
     api_key=GROQ_API_KEY
 )
+print("Model initialized.")
+
+class IntentSchema(BaseModel):
+    """Extract intent and entities for the medical booking system."""
+    intent: Literal["book_appointment", "check_availability", "other"]
+    doctor_name: Optional[str] = Field(None, description="Name of the doctor")
+    appointment_date: Optional[str] = Field(None, description="Date (YYYY-MM-DD)")
 
 #langgraph state
 class AgentState(TypedDict):
     human_input: str
-    intent: dict
+    extracted_data: dict
     messages: Annotated[list[AnyMessage], add_messages]
+
 
 # Intent Classifier Node
 def intent_classifier(state: AgentState) -> AgentState:
     INTENT_SCHEMA = {
         "intent": str,
-        "appointment_date": Optional[str],
-        "doctor_name": Optional[str]}
+        "appointment_date": Optional[datetime.date],
+        "doctor_name": Optional[str],
+    }
     
     user_message = state["human_input"]
 
@@ -43,8 +56,7 @@ def intent_classifier(state: AgentState) -> AgentState:
     prompt = f"""You are an AI assistant that classifies user intents and extracts appointment information.
 
 Analyze the user message and:
-1. Classify the intent (possible intents: "book_appointment", "cancel_appointment", "reschedule_appointment", "other")
-2. Extract relevant information if the intent is appointment-related
+1. Extract relevant information if the intent is appointment-related
 
 User Message: "{user_message}"
 
@@ -52,8 +64,8 @@ Return ONLY a valid JSON object with the following structure (no additional text
 {{
     "intent": "the classified intent",
     "appointment_date": "extracted date in YYYY-MM-DD format or null",
-    "appointment_time": "extracted time in HH:MM format or null",
     "doctor_name": "extracted doctor name or null",
+    "patient_name": "extracted patient name or null",
     "confidence": confidence score between 0 and 1
 }}
 
@@ -68,12 +80,29 @@ User Input: {user_message}
 # Parse into json
     response = model.invoke(prompt)
     try:
-        state["intent"] = json.loads(response)
+        state["extracted_data"] = json.loads(response.content)
     except json.JSONDecodeError:
         logging.error("Failed to parse JSON from model response")
-        state["intent"] = {"intent": "other", "appointment_date": None, "doctor_name": None}
+        state["extracted_data"] = {"intent": "other", "appointment_date": None, "doctor_name": None, "patient_name": None}
+    
     return state
 
+def extraction_node(state: AgentState):
+    # This node turns "Book Dr. Ahuja tomorrow morning" into structured JSON
+    llm = model.with_structured_output(IntentSchema)
+    result = llm.invoke(state["human_input"])
+
+    return {"extracted_data": result.content}
+
+def call_book_node(state: AgentState):
+    # This node calls your @tool with the extracted JSON
+    data = state["extracted_data"]
+    # Unpack the JSON directly into your tool
+    result = book_appointment.ainvoke({
+        "doctor_name": data["doctor_name"],
+        "appointment_date": data["appointment_date"],
+    })
+    return {"tool_result": result}
 
 def get_today_date() -> str:
     """Helper function to get today's date in YYYY-MM-DD format."""
@@ -81,24 +110,39 @@ def get_today_date() -> str:
     return datetime.now().strftime("%Y-%m-%d")
 
 
+def agent_with_tools(state: AgentState):
+    llm_with_tools = model.bind_tools(tools)
+    user_input = state["human_input"]
+    response = llm_with_tools.invoke(user_input)
+    return {"messages": [response]}
+
 def build_agent_graph() -> StateGraph[AgentState]:
+
     graph = StateGraph(AgentState)
     graph.add_node("intent_classifier", intent_classifier)
+    graph.add_node("agent", agent_with_tools)
+    graph.add_node("tools", ToolNode(tools))
 
     graph.add_edge(START, "intent_classifier")
-    graph.add_edge("intent_classifier", END)
+    graph.add_edge("intent_classifier", "agent")
+    graph.add_conditional_edges("agent", should_continue, {"continue": "tools", "end": END})
+    graph.add_edge("tools", "agent")
 
-    return graph
+    print("Graph built successfully.")
+    return graph.compile()
+
+def should_continue(state: AgentState) -> str:
+    last_message = state["messages"][-1]
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+        return "continue"
+    return "end"
 
 if __name__ == "__main__":
-    graph = build_agent_graph()
-
-    assistant = graph.compile()
+    app = build_agent_graph()
 
     initial_state: AgentState = {
-        "human_input": "I would like to book an appointment with Dr. Smith next Monday at 10 AM.",
+        "human_input": "I would like to check availablity of Dr. Smith next Monday at 10 AM.",
         "intent": {},
-        "messages": []
     }
-    final_state = assistant.invoke(initial_state)
+    final_state = app.invoke(initial_state)
     print("Final State:", final_state)
