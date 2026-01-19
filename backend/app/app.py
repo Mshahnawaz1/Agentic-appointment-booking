@@ -20,7 +20,7 @@ class AppointmentRequest(BaseModel):
     doctor_name: str
     appointment_date: datetime.date
 
-class doctor_availablity(BaseModel):
+class Doctor_Availablity(BaseModel):
     doctor_name: str
     date: datetime.date
 
@@ -30,21 +30,30 @@ def health_check():
 
 @app.post("/book_appointment", operation_id="book_appointment")
 def get_data(request: AppointmentRequest):
+    """
+    Use this tool to book an appointment with a doctor.
+    """
     docter = (request.doctor_name or "").strip()
     date_time = request.appointment_date
     if docter == "Dr Smith":
-        return {"message": f"Sorry, {docter} is not available on {date_time}"}
+        return {"message": f"Successfully booked, {docter} on {date_time}", 
+                "status": "success"}
 
-    return {"message": "booking successful"}
+    return {"message": "booking unsuccessful", "status": "failed"}
 
 
 @app.post("/doctor_availablity", operation_id="doctor_availablity")
-async def get_name(request: doctor_availablity):
+async def get_name(request: Doctor_Availablity):
+    """
+    Use this tool to check the availablity of doctor
+    """
     doctor = (request.doctor_name or "").strip()
     date_time = request.date
     if doctor == "Dr Smith":
-        return {"message": f"Sorry, {doctor} is not ready on {date_time}"}
-    return {"name": "cola"}
+        return {"message": f"Success: {doctor} is ready on {date_time}", "status": "success"}
+    return {"message": "Doctor not available", "status": "failed"}
+
+
 
 mcp = FastApiMCP(app, include_operations=["doctor_availablity", "book_appointment"])
 mcp.mount(app, "/mcp")
