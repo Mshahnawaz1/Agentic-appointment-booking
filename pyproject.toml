@@ -15,6 +15,7 @@ dependencies = [
     "langchain-text-splitters>=1.1.0",
     "langgraph>=1.0.6",
     "psycopg2>=2.9.11",
+    "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
 ]
 

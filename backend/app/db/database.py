@@ -1,5 +1,5 @@
 from datetime import timezone, date
-from sqlalchemy import create_engine, Column, Integer, String, DateTime,Enum, func
+from sqlalchemy import create_engine, Column, Integer, String, DATE, DateTime, Enum, func
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 import enum
@@ -29,7 +29,7 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     doctor_name = Column(String(100), nullable=False)
-    appointment_date = Column(DateTime(timezone=True), nullable=False)
+    appointment_date = Column(DATE, nullable=False)
     patient_name = Column(String(100), nullable=True)
     reason = Column(String(255), nullable=True)
     status = Column(Enum(AppointmentStatus, name="appointment_status"), nullable=False,

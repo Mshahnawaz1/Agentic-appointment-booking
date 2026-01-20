@@ -1,14 +1,22 @@
 
+Video demo: <video controls src="static/dobbe-ai-assistant.mp4" title="Medico-assistant"></video>
 
-![Agent flowgraph](image.png)
+TODO: README structure
 
 ## Current implementation 
 - Agent flowgraph
 - ApI endpoints
 - Mcp tools
-- database (debug)
-- frontend TODO
+- database 
+- frontend 
 
 
 ### Database schema
-![alt text](image-1.png)
+![alt text](static/image-1.png)
+
+### Workflow trials
+![alt text](static/image.png)
+![alt text](static/output.png)
+
+### implemented workflow
+![alt text](static/workflow.png)

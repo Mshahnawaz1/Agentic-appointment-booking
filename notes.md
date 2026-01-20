@@ -48,8 +48,10 @@ INFO:httpx:HTTP Request: POST http://localhost:8000/doctor_availablity "HTTP/1.1
 Enter the container's PostgreSQL shell
 - `docker exec -it school_db psql -U postgres -d school_db`
 ```
-docker-compose down          # Stops container, keeps data
+docker-compose down          # Stops container, keeps data, deletes the container
 docker-compose down -v       # stop and remove data
+docker-compose stop
+docker-compose start
 ```
 3. When creating the model for database, *enum* is used to create a new type of column as String, Date etc. It should be named otherwise db will randomly generate the name.
 
@@ -71,3 +73,5 @@ docker exec -it school_db psql -U myuser -d school
 - I am using threads to keep the messages from different users from mixing to one another.
 - Using Memory saver to keep the history intact. Also prevents all chats to be sent to server repetedly, reducing the memory overhead. Sqlite can be used to make the memory persistance.
 - Using langchain build in function to keep adding the new messages to the databse.
+
+- `npm install && npm run dev`
