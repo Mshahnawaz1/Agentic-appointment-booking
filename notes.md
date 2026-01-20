@@ -50,3 +50,16 @@ docker-compose down          # Stops container, keeps data
 docker-compose down -v       # stop and remove data
 ```
 3. When creating the model for database, *enum* is used to create a new type of column as String, Date etc. It should be named otherwise db will randomly generate the name.
+
+Runs the psql cli
+docker exec -it school_db psql -U myuser -d school
+    - DROP TABLE appointments
+
+### Implementation ideas
+- The date time need to be converted into slots(0f 30min).
+- These slots serial no will then be stored, instead to date time. (makes appointment easier)
+- A new table for doctors need to be created. (adding doctors info and unique id)
+
+
+## Errors 
+- Need to make the date into one format only date. in database.

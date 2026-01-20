@@ -1,7 +1,8 @@
-from datetime import timezone, datetime
-from sqlalchemy import create_engine
+from datetime import timezone, date
+from sqlalchemy import create_engine, Column, Integer, String, DateTime,Enum, func
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
+import enum
 
 DB_USER = os.getenv("POSTGRES_USER", "myuser")
 DB_PASS = os.getenv("POSTGRES_PASSWORD", "mypassword")
@@ -16,6 +17,27 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# status model 
+class AppointmentStatus(str, enum.Enum):
+    scheduled = "scheduled"
+    cancelled = "cancelled"
+    completed = "completed"
+
+# database model
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    doctor_name = Column(String(100), nullable=False)
+    appointment_date = Column(DateTime(timezone=True), nullable=False)
+    patient_name = Column(String(100), nullable=True)
+    reason = Column(String(255), nullable=True)
+    status = Column(Enum(AppointmentStatus, name="appointment_status"), nullable=False,
+    default=AppointmentStatus.scheduled
+)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
+
 def get_db():
     db = SessionLocal()
     try:
@@ -25,7 +47,6 @@ def get_db():
 
 if __name__ == "__main__":
     from sqlalchemy import text
-    from schemas import Appointment
     Base.metadata.create_all(bind=engine)
 
     db = None
@@ -36,10 +57,12 @@ if __name__ == "__main__":
             doctor_name="Dr Smith",
             patient_name="Cola",
             reason="Fever",
-            appointment_date=datetime(2026, 1, 19, 10, 0, tzinfo=timezone.utc),
+            appointment_date=date(2026, 1, 19),
             status="scheduled"
         )
-        # db.query(Appointment).all()
+        appoint = db.query(Appointment).all()
+        for a in appoint:
+            print(a.doctor_name, a.appointment_date)
 
         db.add(new_appt)
         db.commit()

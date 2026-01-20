@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 
 from db.database import engine, get_db, SessionLocal, Base
-from db.schemas import AppointmentCreate, AppointmentOut, Appointment, DoctorAvailability
+from db.schemas import AppointmentCreate, AppointmentOut, DoctorAvailability
+from db.database import Appointment, Base
+from datetime import date
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,12 +33,15 @@ def book_appointment(request: AppointmentCreate, db: Session = Depends(get_db)):
     """
     Use this tool to book an appointment with a doctor.With the cumpulsory fields being doctor_name and appointment_date."""
     doctor = request.doctor_name.strip()
+    print("Appointment date is", request.appointment_date)
+
+    # appointment_date = date(request.appointment_date)
 
     # check if already booked (same doctor + same time)
     existing = (
         db.query(Appointment)
         .filter(Appointment.doctor_name == doctor)
-        .filter(Appointment.date_time == request.appointment_date)
+        .filter(Appointment.appointment_date == request.appointment_date)
         .first()
     )
 
@@ -47,7 +52,7 @@ def book_appointment(request: AppointmentCreate, db: Session = Depends(get_db)):
         doctor_name=doctor,
         patient_name=request.patient_name,
         reason=request.reason,
-        date_time=request.appointment_date,
+        appointment_date=request.appointment_date,
         status="scheduled",
     )
 
@@ -67,7 +72,7 @@ def doctor_availability(request: DoctorAvailability, db: Session = Depends(get_d
     existing = (
         db.query(Appointment)
         .filter(Appointment.doctor_name == doctor)
-        .filter(Appointment.date_time == request.appointment_date)
+        .filter(Appointment.appointment_date == request.appointment_date)
         .filter(Appointment.status == "scheduled")
         .first()
     )
@@ -82,9 +87,8 @@ def list_appointments(db: Session = Depends(get_db)):
 
 
 # mcp mounting
-mcp = FastApiMCP(app, include_operations=["doctor_availablity", "book_appointment"])
+mcp = FastApiMCP(app, include_operations=["doctor_availability", "book_appointment", "check_all_appointments"])
 mcp.mount(app, "/mcp")
-
 
 if __name__ == "__main__":
     import uvicorn
