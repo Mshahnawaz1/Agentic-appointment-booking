@@ -1,5 +1,5 @@
 
-Video demo: <video controls src="static/dobbe-ai-assistant.mp4" title="Medico-assistant"></video>
+Video demo: <video controls src="https://github.com/Mshahnawaz1/Agentic-appointment-booking/edit/main/static/dobbe-ai-assistant.mp4" title="Medico-assistant"></video>
 
 TODO: README structure
 
