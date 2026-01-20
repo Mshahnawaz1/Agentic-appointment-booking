@@ -8,3 +8,7 @@
 - Mcp tools
 - database (debug)
 - frontend TODO
+
+
+### Database schema
+![alt text](image-1.png)

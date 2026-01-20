@@ -1,15 +1,15 @@
 Challenges while working on this assignment
 1. What should be schema of the datas . [intent, registration]
 2. Should i directly use mcp or with fastapi
- - going with fastapi as it will expose the endpoint to user frontend
+ - going with fastapi as it will expose the endpoint to user frontend also.
 
 
 
-3. Connecting MCP with fast was very bad, most of the server was not connected, and then debug console wont open.
-- Solved this using to debug, [direct, sse(for https service), other one is for LLMS like claude etc.]
+3. Connecting MCP with fast api was very confusing, most of the time server was not connected, and then debug console wont open.
+- Solved this using debug tool, [direct, sse(for https service), other one is for LLMS like claude code etc.]
 `npx @modelcontextprotocol/inspector http://localhost:8000/mcp/`
+- Using client.py for manual testing.
 
-or use client.py, 
 - make the CORS available
 - uvicorn app:app --reload : does not run the __main__, that was also causing error(i was running mcp in this)
 
@@ -38,6 +38,8 @@ This is the issue:
 Booking appointment with payload: {'doctor_name': 'Dr. Smith', 'date': 'this week\'s date + 7 days + 1 days + "2024-01-15" or "the next  Monday'}
 INFO:httpx:HTTP Request: POST http://localhost:8000/doctor_availablity "HTTP/1.1 422 Unprocessable Content"`
 
+--- 
+
 
 ### DATABASE
 - Using postgresql with docker, 
@@ -59,7 +61,13 @@ docker exec -it school_db psql -U myuser -d school
 - The date time need to be converted into slots(0f 30min).
 - These slots serial no will then be stored, instead to date time. (makes appointment easier)
 - A new table for doctors need to be created. (adding doctors info and unique id)
-
+- A new agent graph for the docter interface.
 
 ## Errors 
-- Need to make the date into one format only date. in database.
+- Need to make the date into one format only date. in database. [done]
+- Also the data schema in the client tools(mcp) need to match the schema of endpoint.
+
+## Frontend
+- I am using threads to keep the messages from different users from mixing to one another.
+- Using Memory saver to keep the history intact. Also prevents all chats to be sent to server repetedly, reducing the memory overhead. Sqlite can be used to make the memory persistance.
+- Using langchain build in function to keep adding the new messages to the databse.
