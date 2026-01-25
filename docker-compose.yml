@@ -1,4 +1,3 @@
-version: '3.8'
 
 services: 
   postgres: # we can have multiple services here like redis,etc.
