@@ -46,7 +46,7 @@ INFO:httpx:HTTP Request: POST http://localhost:8000/doctor_availablity "HTTP/1.1
     `docker-compose up -d`
 
 Enter the container's PostgreSQL shell
-- `docker exec -it school_db psql -U postgres -d school_db`
+- `docker exec -it school_db psql -U myuser -d school`
 ```
 docker-compose down          # Stops container, keeps data, deletes the container
 docker-compose down -v       # stop and remove data
@@ -56,8 +56,9 @@ docker-compose start
 3. When creating the model for database, *enum* is used to create a new type of column as String, Date etc. It should be named otherwise db will randomly generate the name.
 
 Runs the psql cli
-docker exec -it school_db psql -U myuser -d school
-    - DROP TABLE appointments
+`docker exec -it school_db psql -U myuser -d school`
+    - DROP TABLE appointments  
+- 
 
 ### Implementation ideas
 - The date time need to be converted into slots(0f 30min).
@@ -75,3 +76,5 @@ docker exec -it school_db psql -U myuser -d school
 - Using langchain build in function to keep adding the new messages to the databse.
 
 - `npm install && npm run dev`
+
+1. Getting error vite not found, this might be due to the file being deleted when commiting.

@@ -5,9 +5,9 @@ from langchain_core.messages import SystemMessage, HumanMessage, AnyMessage, Too
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode, tools_condition
 from dotenv import load_dotenv
+import asyncio
 import os
 
-from client import tools
 from utils import get_today_date
 
 load_dotenv()
@@ -20,6 +20,7 @@ model = ChatGroq(
     temperature=0
 )
 
+
 SYS_PROMPT = """ 
 ### Role
 You are a highly efficient Medical Appointment and Reporting Assistant. Your goal is to guide users through the scheduling process with clinical precision and professional warmth.
@@ -31,22 +32,22 @@ You are a highly efficient Medical Appointment and Reporting Assistant. Your goa
    - If a specific Doctor/Date/Time is missing, ASK for it.
    - For dates/times, assume the current year is 2026. 
    - FORMAT: Always interpret and pass dates to tools in 'YYYY-MM-DD HH:MM' format.
-4. Tool Execution: Once all parameters (e.g., doctor_name, appointment_time) are clear, invoke the tool. 
+4. Tool Execution: When tool use is triggered, ensure all the required parameters are present.
+   - If any parameter is missing, PROMPT the user to provide it before proceeding. Or get them using tools available.
+
 5. Reporting: Translate the tool's raw output (e.g., success/failure) into a clear message for the user.
 
 ### Constraints & Guardrails
 - Data Format: When a user says "Tomorrow at 10 AM," calculate the exact date based on the current date (Tuesday, Jan 20, 2026) and format it as '2026-01-21 10:00'.
-- One Task at a Time: Do not call multiple tools simultaneously unless necessary.
+- One Task at a Time: Only call multiple tools when necessary to fulfill the user's request.
 - Finality: After a successful booking or report delivery, thank the user and signal the end of the transaction. Do not suggest further tools unless prompted.
 """ + "\n\n### Today's Date: " + get_today_date()
 
-
 class AgentState(TypedDict):
-    human_input: str
     messages: Annotated[list[AnyMessage], add_messages]
 
 # Since the mcp is asynchronous, we need to make the agent node async as well. [This was the cause of previous errors.]
-async def agent_with_tools(state: AgentState):
+async def agent_with_tools(state: AgentState, tools:list) -> AgentState:
     llm_with_tools = model.bind_tools(tools)
     response = await llm_with_tools.ainvoke(state["messages"])
     return {
@@ -59,7 +60,7 @@ def handle_tool_error(state):
     If an error occurred, it formats a message telling the agent what happened.
     """
     last_message = state["messages"][-1]
-    if "error" in last_message.content.lower():
+    if "error" in last_message.content:
         return {
             "messages": [
                 ToolMessage(
@@ -70,10 +71,12 @@ def handle_tool_error(state):
         }
     return state
   
-def build_agent_graph() -> StateGraph:
+def build_agent_graph(tools:list) -> StateGraph:
     graph = StateGraph(AgentState)
     
-    graph.add_node("agent", agent_with_tools)
+    async def agent_node(state: AgentState) -> AgentState:
+        return await agent_with_tools(state, tools)
+    graph.add_node("agent", agent_node)
     graph.add_node("error_handler", handle_tool_error)
     graph.add_node("tools", ToolNode(tools))
 

@@ -1,10 +1,17 @@
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 import asyncio
 from agent import build_agent_graph, SYS_PROMPT
+from mcp_client import mcp_tools
+
+# Chat is working fine
+async def get_tools():
+    tools = await mcp_tools()
+    return tools
 
 async def run_cli():
+    tools = await get_tools()
     # 1. Compile the graph ONCE outside the loop for speed
-    app = build_agent_graph().compile()
+    app = build_agent_graph(tools).compile()
     
     # 2. Maintain a history of messages for memory during this session
     # We start with the System Message
