@@ -1,26 +1,26 @@
+"""
+Note: used by project as a mcp server, with fastapi routes
+Run : 
+uv run uvicorn "mcp/server:app" --reload
+uv run mcp/server.py
+"""
+
 import uuid
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi_mcp import FastApiMCP
 from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
-from pydantic import BaseModel
-import os
-import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
 from pydantic import BaseModel, EmailStr, Field
+import smtplib
+import os
 
 from db.schemas import Tool_response
-from datetime import date
-from langchain_core.messages import HumanMessage, SystemMessage
-
 from db.database import engine, get_db, Base
 from db.schemas import BookAppointment, Tool_response, AppointmentOut, DoctorAvailability, Doctor_schema, Appointment_schema
 from db.database import Appointment, Base, Doctor
-from agent import build_agent_graph, SYS_PROMPT
-from mcp_client import mcp_tools
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -28,19 +28,23 @@ load_dotenv()
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")  
 APP_PASSWORD = os.getenv("APP_PASSWORD")
 
+gmail_address = os.getenv("EMAIL_ADDRESS")
+gmail_app_password = os.getenv("APP_PASSWORD")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
     print("Starting up...mcp tools")
-    # Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     yield
     print("Shutting down...")
 
-app = FastAPI(title="Simple FastAPI + MCP", lifespan=lifespan)
+app = FastAPI(title="FastAPI + MCP for appointment", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this
+    allow_origins=["*"],  # In production, restrict this to the trusted origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -130,9 +134,6 @@ async def send_email_gmail(request: SendEmailRequest):
     """
     This tool is used to send confirmation email to patients using Gmail.
     """
-    gmail_address = os.getenv("EMAIL_ADDRESS")
-    gmail_app_password = os.getenv("APP_PASSWORD")
-
     if not gmail_address or not gmail_app_password:
         res = {"message": f"Environment variables EMAIL_ADDRESS or APP_PASSWORD are missing", "status": "error", "data": {}}
         return res
@@ -151,7 +152,7 @@ async def send_email_gmail(request: SendEmailRequest):
             server.login(gmail_address, gmail_app_password)
             server.sendmail(gmail_address, request.to_email, msg.as_string())
 
-        return {"message": "Email sent successfully", "status": "success", "data": {}}
+        return {"message": "Email sent successfully", "status": "success", "data": {msg}}
 
     except Exception as e:
         return {"message": f"Failed to send email: {str(e)}", "status": "error", "data": {}}
@@ -163,5 +164,4 @@ mcp.mount(mount_path="/mcp")
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-# uv run uvicorn app:app --reload 
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,3 +1,9 @@
+"""
+This is used to collect the tools information from the server and feed to the chatbot.
+Run to test: 
+uv run chat/mcp_client.py
+"""
+
 from langchain_mcp_adapters.client import MultiServerMCPClient
 import asyncio
 import os
@@ -15,7 +21,10 @@ async def mcp_tools():
     # debug
     for t in all_tools:
         print(f"Loaded tool: {t.name}")
-
     return all_tools
 
-# asyncio.run(mcp_tools())
+if __name__ == "__main__":
+    try:
+        asyncio.run(mcp_tools())
+    except Exception as e:
+        print(f"Error at tool loading: {e}")

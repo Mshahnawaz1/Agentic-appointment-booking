@@ -1,7 +1,7 @@
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 import asyncio
 from agent import build_agent_graph, SYS_PROMPT
-from mcp_client import mcp_tools
+from backend.mcp.mcp_client import mcp_tools
 
 # Chat is working fine
 async def get_tools():

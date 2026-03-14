@@ -1,3 +1,10 @@
+"""
+This file is directly calling tools available, used for testing. 
+Can be used by llm but is not good.
+Note: Not used by project
+"""
+
+
 import httpx
 from langchain_core.tools import tool
 import asyncio

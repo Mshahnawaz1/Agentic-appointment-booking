@@ -1,3 +1,11 @@
+"""
+Main chat interface also ruunnig the agent instance
+
+Run: 
+uv run chat/chat.py
+PYTHONPATH=. uv run chat/chat.py -- this solves the import error
+"""
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.concurrency import asynccontextmanager
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -5,8 +13,8 @@ import uuid
 from pydantic import BaseModel
 from langgraph.checkpoint.memory import MemorySaver
 
-from agent import build_agent_graph, SYS_PROMPT
-from mcp_client import mcp_tools
+from agents.agent import build_agent_graph, SYS_PROMPT
+from agents.mcp_client import mcp_tools
 
 
 @asynccontextmanager
@@ -20,7 +28,7 @@ async def lifespan(app: FastAPI):
     yield
     print("Shutting down...")
 
-app = FastAPI(title="Simple FastAPI + MCP", lifespan=lifespan)
+app = FastAPI(title="Chat interface + MCP", lifespan=lifespan)
 
 @app.get("/health")
 def health_check():
@@ -66,4 +74,3 @@ async def chat_endpoint(request: ChatRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("chat:app", host="0.0.0.0", port=8001, reload=True)
-# uv run chat.py

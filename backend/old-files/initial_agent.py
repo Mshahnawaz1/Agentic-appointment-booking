@@ -12,7 +12,7 @@ import os
 from dotenv import load_dotenv
 import datetime
 
-from backend.app.client import tools
+from backend.chat.client import tools
 
 #loading 
 load_dotenv()

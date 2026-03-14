@@ -9,9 +9,9 @@ from langgraph.prebuilt import ToolNode
 import os
 from dotenv import load_dotenv
 
-from app.client import tools
+from chat.client import tools
 # from utils.utils import logger
-from backend.app.utils import get_today_date
+from backend.chat.utils import get_today_date
 
 load_dotenv()
 
