@@ -1,5 +1,5 @@
 import pytest
-from backend.app.agent import build_agent_graph
+from backend.chat.agent import build_agent_graph
 from langchain_core.messages import HumanMessage
 
 @pytest.mark.asyncio

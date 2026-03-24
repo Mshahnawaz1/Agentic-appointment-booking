@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db.database import engine
-from backend.app.db.schemas import AppointmentCreate, AppointmentOut
+from backend.chat.db.schemas import AppointmentCreate, AppointmentOut
 import datetime
 
 app = FastAPI(title="Simple FastAPI + MCP Demo")
