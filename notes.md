@@ -60,6 +60,9 @@ Runs the psql cli
     - DROP TABLE appointments  
 - 
 
+### Docker
+- The .env file is update when changed, without restart
+
 ### Implementation ideas
 - The date time need to be converted into slots(0f 30min).
 - These slots serial no will then be stored, instead to date time. (makes appointment easier)
