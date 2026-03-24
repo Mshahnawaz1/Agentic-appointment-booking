@@ -4,10 +4,6 @@ FROM python:3.11-slim
 WORKDIR /app
 
 RUN pip install uv
-# Tell uv to use system python via environment variable
-# ENV UV_PYTHON=/usr/local/bin/python3
-# ENV VIRTUAL_ENV=/app/.venv
-# ENV PATH="/app/.venv/bin:$PATH"
 
 # solves module not found
 ENV PYTHONPATH=/app 
