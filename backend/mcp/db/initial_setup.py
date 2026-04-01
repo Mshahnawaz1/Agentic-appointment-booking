@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Adjust import path depending on how you run this
-from database import engine, SessionLocal, Base, Doctor
+from db.database import engine, SessionLocal, Base, Doctor
 
 
 DOCTORS_JSONL = Path(__file__).parent / "doctors.jsonl"
@@ -32,7 +32,12 @@ def load_doctors_from_jsonl(path: Path) -> list[dict]:
 
 
 def seed_doctors(db: Session, doctors: list[dict]) -> None:
-    existing = db.query(Doctor).count()
+    try:
+        existing = db.query(Doctor).count()
+    except Exception as e:
+        print("Database is not responding")
+        return 
+    
     if existing > 0:
         print(f"⚠️  Skipping seed — {existing} doctor(s) already exist in the database.")
         return
@@ -48,9 +53,13 @@ def seed_doctors(db: Session, doctors: list[dict]) -> None:
     print(f"✅ Seeded {len(doctors)} doctors successfully.")
 
 
-def run():
-    print("🔧 Creating tables if they don't exist...")
-    Base.metadata.create_all(bind=engine)
+def seed_doctors():
+    print("🔧 Connecting to db")
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Database is not responding: Error is {e}")
+        raise 
 
     print(f"📂 Reading doctors from: {DOCTORS_JSONL}")
     doctors = load_doctors_from_jsonl(DOCTORS_JSONL)
@@ -74,4 +83,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    seed_doctors()

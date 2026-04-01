@@ -18,9 +18,10 @@ import smtplib
 import os
 
 from db.schemas import Tool_response
-from db.database import engine, get_db, Base
+from db.database import engine, get_db, Base, SessionLocal
 from db.schemas import BookAppointment, Tool_response, AppointmentOut, DoctorAvailability, Doctor_schema, Appointment_schema
 from db.database import Appointment, Base, Doctor
+from db.initial_setup import seed_doctors
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -37,6 +38,15 @@ async def lifespan(app: FastAPI):
     # startup
     print("Starting up...mcp tools")
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_doctors(db)
+    except Exception as e:
+        print("cannot seed")
+    finally:
+        db.close()
+        yield
+    print("MCP is running")
     yield
     print("Shutting down...")
 
@@ -163,5 +173,4 @@ mcp.mount(mount_path="/mcp")
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)

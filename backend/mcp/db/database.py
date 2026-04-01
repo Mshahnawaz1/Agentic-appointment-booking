@@ -56,6 +56,8 @@ def get_db():
         db.close()
 
 if __name__ == "__main__":
+
+    # testing
     from sqlalchemy import text
     Base.metadata.create_all(bind=engine)
 

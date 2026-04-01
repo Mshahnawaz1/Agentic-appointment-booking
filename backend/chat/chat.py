@@ -9,6 +9,7 @@ PYTHONPATH=. uv run chat/chat.py -- this solves the import error
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.concurrency import asynccontextmanager
 from langchain_core.messages import HumanMessage, SystemMessage
+from starlette.middleware.cors import CORSMiddleware
 import uuid
 from pydantic import BaseModel
 from langgraph.checkpoint.memory import MemorySaver
@@ -21,14 +22,24 @@ from agents.mcp_client import mcp_tools
 async def lifespan(app: FastAPI):
     # startup
     global agent_app, tools
-    
-    tools = await mcp_tools()
+    tools = []
+    try:
+        tools = await mcp_tools()
+    except Exception as e:
+        print("Tools not loaded")
     agent_app = build_agent_graph(tools).compile(checkpointer=MemorySaver())
     print("Starting up... chat")
     yield
     print("Shutting down...")
 
 app = FastAPI(title="Chat interface + MCP", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict this to the trusted origins
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():

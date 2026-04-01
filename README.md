@@ -217,20 +217,15 @@ Copy the example env file and fill in your values:
 cp .env.example .env
 ```
 
-Edit `.env`:
-
 ```env
-# PostgreSQL
-POSTGRES_USER=myuser
-POSTGRES_PASSWORD=mypassword
-POSTGRES_DB=appointments_db
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
+GOOGLE_API_KEY="REQUIRED"
+HF_API = "required"
 
-# LLM Provider (add your API key)
-OPENAI_API_KEY=sk-...
-# or
-ANTHROPIC_API_KEY=sk-ant-...
+EMAIL_ADDRESS = "" #For sending emails
+APP_PASSWORD = ""
+
+MCP_SERVER_URL="http://localhost:8000/mcp"
+DB_URL="postgresql://myuser:mypassword@postgres:5432/school"
 ```
 
 ---
