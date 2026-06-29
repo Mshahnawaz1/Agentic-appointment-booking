@@ -50,6 +50,15 @@ The system uses **MCP (Model Context Protocol)** to expose scheduling tools as F
 
 ## 🚀 Key Features
 
+This is not just a chatbot connected via an api call, but an agent that controls multiples tools and uses them according to the user intent.
+The tools currently available to the agent are the following: 
+- check_doctor_availability : Check if the doctor is available on specific date.
+- list_doctors : List of all the doctors in the database.
+- appointments : List of appointments of the doctors
+- book_appointment : Book appointment with doctor on specific date and time.
+- send_email_gmail : When booking is successful, send email to the client.
+
+
 | Feature | Description |
 |---|---|
 | 🤖 **Intelligent Reasoning** | LangGraph agent handles multi-step decision-making, slot resolution, and tool orchestration |
