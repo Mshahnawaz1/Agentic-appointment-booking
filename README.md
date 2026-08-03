@@ -13,7 +13,7 @@
 
 **An intelligent, agentic healthcare scheduling system powered by LangGraph, MCP tools, and natural language understanding.**
 
-[📺 Watch Demo](https://youtu.be/UoAFRcwEC20) · [🐛 Report Bug](https://github.com/Mshahnawaz1/Agentic-appointment-booking/issues) · [✨ Request Feature](https://github.com/Mshahnawaz1/Agentic-appointment-booking/issues)
+[🚀 Live Link](https://agentic-appointment-booking.vercel.app/) • [📺 Watch Demo](https://youtu.be/UoAFRcwEC20) · [🐛 Report Bug](https://github.com/Mshahnawaz1/Agentic-appointment-booking/issues) · [✨ Request Feature](https://github.com/Mshahnawaz1/Agentic-appointment-booking/issues).
 
 </div>
 
